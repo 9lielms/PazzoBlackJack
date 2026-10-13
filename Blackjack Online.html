@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blackjack Online</title>
+<style>
+:root{--bg:#f3f1ea;--cd:#fff;--tx:#1b1b1a;--mu:#6b6a64;--ac:#1f8a5b;--rd:#c8372d;--bd:#d9d6cb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--cd:#1f2227;--tx:#efeee8;--mu:#9a9992;--ac:#34b27c;--rd:#ff7a6e;--bd:#33363d}}
+:root[data-theme="dark"]{--bg:#14161a;--cd:#1f2227;--tx:#efeee8;--mu:#9a9992;--ac:#34b27c;--rd:#ff7a6e;--bd:#33363d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center}
+main{width:100%;max-width:440px;padding:16px 12px 32px}
+h1{font-size:26px;margin:6px 0 12px}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:10px}
+input{width:100%;font-size:18px;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);margin:6px 0 10px}
+button,a.b{display:block;width:100%;text-align:center;text-decoration:none;font-size:17px;font-weight:600;padding:13px;border-radius:12px;border:0;background:var(--ac);color:#fff;margin-top:8px}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button:disabled{opacity:.4}
+.r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nm{font-weight:700}.mu{color:var(--mu);font-size:14px}
+.cs{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.k{min-width:38px;padding:6px 4px;text-align:center;border:1px solid var(--bd);border-radius:7px;font-weight:700;background:var(--bg)}
+.k.h{background:var(--ac);color:#fff;border-color:var(--ac)}.k.red{color:var(--rd)}
+.ch{display:flex;gap:6px;flex-wrap:wrap}
+.ch button{width:auto;flex:1;min-width:52px;border-radius:30px;margin:0;padding:12px 0;background:#444;border:3px dashed #fff8}
+.hide{display:none}.code{font-size:26px;letter-spacing:4px;font-weight:800;text-align:center}
+.me{outline:2px solid var(--ac)}
+.pos{color:var(--ac)}.neg{color:var(--rd)}
+table{width:100%;border-collapse:collapse}td{padding:8px 4px;border-bottom:1px solid var(--bd)}td:last-child{text-align:right;font-weight:700}
+</style></head><body><main>
+<h1>♠ Blackjack Online</h1>
+<div id="home" class="cd">
+<label for="nm">Il tuo nome</label><input id="nm" maxlength="14" placeholder="Es. Marco" autocomplete="off">
+<button id="cr">Crea lobby</button>
+<div class="mu" style="margin:12px 0 0">oppure entra con un codice</div>
+<input id="cd" maxlength="5" placeholder="CODICE" style="text-transform:uppercase;text-align:center;letter-spacing:3px">
+<button class="g" id="jn">Entra</button><div class="mu" id="er" style="margin-top:8px"></div></div>
+<div id="gm" class="hide">
+<div id="lb"></div><div id="st" class="cd nm" style="text-align:center"></div>
+<div id="tb"></div><div id="ct"></div></div>
+</main>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},R,code,me={n:"",j:0,s:0,ap:0,T:0,b:0,bk:0},cur={};
+var RK=["A","2","3","4","5","6","7","8","9","10","J","Q","K"],SU=["♠","♥","♦","♣"],CH=[0.5,1,2,5,10];
+function P(o){Object.assign(me,o);R.presence(o)}
+function rnd(){return Math.floor(Math.random()*52)}
+function val(h){var t=0,a=0;h.forEach(function(c){var r=c%13;if(r==0){a++;t+=11}else t+=r>=9?10:r+1});while(t>21&&a){t-=10;a--}return t}
+function cd(c,hid){return hid?'<span class="k h">?</span>':'<span class="k'+(Math.floor(c/13)%3?(Math.floor(c/13)<3?' red':''):'')+'">'+RK[c%13]+SU[Math.floor(c/13)]+'</span>'}
+function pay(g,i){var h=g.hd[i],d=g.dl,b=g.bt[i],hv=val(h),dv=val(d),hn=h.length==2&&hv==21,dn=d.length==2&&dv==21;
+if(hv>21)return -b;if(hn&&!dn)return b*1.5;if(dn&&!hn)return -b;if(hn&&dn)return 0;if(dv>21||hv>dv)return b;return hv==dv?0:-b}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function f(x){x=Math.round(x*100)/100;return(x>0?"+":"")+x}
+function er(t){$("er").textContent=t||""}
+function gen(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+var h0=(location.hash||"").replace("#","").toUpperCase().slice(0,5);if(h0)$("cd").value=h0;
+async function start(c){
+var n=$("nm").value.trim();if(!n)return er("Inserisci il tuo nome.");if(!/^[A-Z0-9]{5}$/.test(c))return er("Il codice ha 5 caratteri.");
+er("Connessione...");
+try{var b=window.claude&&await window.claude.use("room");if(!b)return er("Multiplayer non disponibile: serve l'accesso a claude.ai.");
+code=c;R=await b.join("bj-"+c.toLowerCase());me.n=n;me.j=Date.now();await R.presence(me);R.onPeers(render);
+$("home").classList.add("hide");$("gm").classList.remove("hide");render()}catch(e){er("Impossibile entrare.")}}
+$("cr").onclick=function(){start(gen())};$("jn").onclick=function(){start($("cd").value.trim().toUpperCase())};
+function link(){return location.href.split("#")[0]+"#"+code}
+function step(g,ro,by,key){var n=JSON.parse(JSON.stringify(g)),ch=0,all=1;
+Object.keys(n.bt).forEach(function(i){var p=by[ro[i]],h=n.hd[i],a=p&&p.presence.act,ok=a&&a.k===key;
+if(ok)while(h.length-2<(a.h||0)&&val(h)<21){h.push(rnd());ch=1}
+if(p&&val(h)<21&&!(ok&&a.s===1))all=0});
+if(all||(n.dl.length==2&&val(n.dl)==21)){while(val(n.dl)<17)n.dl.push(rnd());n.ph="end";ch=1}
+return ch?n:null}
+function render(){
+if(!R)return;
+var ps=R.peers().filter(function(p){return p.kind==="viewer"&&p.presence&&p.presence.j}).sort(function(a,b){return a.presence.j-b.presence.j||(a.peer<b.peer?-1:1)});
+var ro=null,T=0,by={},my=null;
+ps.forEach(function(p){by[p.peer]=p;if(p.isMe&&p.sameTab)my=p.peer;if(p.presence.ro&&!ro)ro=p.presence.ro;T=Math.max(T,p.presence.T||0)});
+if(ro&&!me.ro)P({ro:ro});if(T>me.T)P({T:T});
+var lb=$("lb"),tb=$("tb"),ct=$("ct"),st=$("st");lb.innerHTML="";tb.innerHTML="";ct.innerHTML="";
+if(!ro){
+var idx=ps.findIndex(function(p){return p.peer===my});
+lb.innerHTML='<div class="cd"><div class="mu">Codice lobby</div><div class="code">'+code+'</div><a class="b" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent("Giochiamo a Blackjack! Entra qui: "+link()+" (codice: "+code+")")+'">Invita su WhatsApp</a><button class="g" id="cp">Copia link</button></div>';
+$("cp").onclick=async function(){try{await navigator.clipboard.writeText(link());this.textContent="Copiato!"}catch(e){this.textContent="Codice: "+code}};
+tb.innerHTML='<div class="cd"><div class="mu">Giocatori ('+Math.min(ps.length,10)+'/10)</div>'+ps.slice(0,10).map(function(p){return'<div class="nm">'+esc(p.presence.n)+(p.peer===my?" (tu)":"")+"</div>"}).join("")+"</div>";
+if(idx>=10){st.textContent="Lobby piena (max 10)";return}
+if(ps[0].peer===my){st.textContent=ps.length<2?"Servono almeno 2 giocatori":"Pronti?";ct.innerHTML='<button data-a="go"'+(ps.length<2?" disabled":"")+'>Inizia partita</button>'}
+else st.textContent="In attesa che l'host avvii la partita...";
+cur={ro:null,ps:ps};return}
+if(T>=ro.length){
+var rows=ro.map(function(id){var p=by[id];return{n:p?p.presence.n:"(uscito)",s:p?p.presence.s||0:0}}).sort(function(a,b){return b.s-a.s});
+var top=rows[0].s,wn=rows.filter(function(r){return r.s===top}).map(function(r){return r.n}).join(", ");
+st.textContent="🏆 Vincitore: "+wn;
+tb.innerHTML='<div class="cd"><table>'+rows.map(function(r,i){return"<tr><td>"+(i+1)+". "+esc(r.n)+'</td><td class="'+(r.s>0?"pos":r.s<0?"neg":"")+'">'+f(r.s)+"</td></tr>"}).join("")+"</table></div>";
+ct.innerHTML='<button data-a="new">Nuova partita</button>';cur={};return}
+var bid=ro[T],bp=by[bid],isB=bid===my,mi=ro.indexOf(my);
+if(!bp){if(ro.filter(function(id){return by[id]})[0]===my)P({T:T+1});st.textContent="Il banco è uscito, si passa oltre...";return}
+var g=bp.presence.g;
+if(!g||g.T!==T){if(isB)P({g:{T:T,M:1,ph:"bet",bt:{},hd:{},dl:[]}});st.textContent="Preparazione turno...";return}
+var key=T*10+g.M;cur={g:g,ro:ro,by:by,key:key,T:T,my:my,mi:mi,isB:isB};
+if(isB&&g.ph==="play"){var n=step(g,ro,by,key);if(n)P({g:n})}
+if(g.ph==="end"&&me.ap!==key&&mi>=0){var net=0;
+if(isB)Object.keys(g.bt).forEach(function(i){net-=pay(g,i)});else if(g.bt[mi])net=pay(g,mi);
+P({s:Math.round(((me.s||0)+net)*100)/100,ap:key})}
+var nmB=esc(bp.presence.n);
+st.textContent="Turno "+(T+1)+"/"+ro.length+" · Manche "+g.M+"/5 · "+(g.ph==="bet"?"Puntate":g.ph==="play"?"Si gioca":"Risultati");
+var h="";
+ro.forEach(function(id,i){var p=by[id],pr=p&&p.presence,bk=i===T,hand=bk?g.dl:g.hd[i],bet=g.ph==="bet"?(pr&&pr.bk===key?pr.b:0):g.bt[i];
+var cs=(hand||[]).map(function(c,k){return cd(c,bk&&k===1&&g.ph!=="end")}).join("");
+var tot=hand&&hand.length&&(!bk||g.ph==="end")?" · "+val(hand):"";
+var res=g.ph==="end"&&!bk&&g.bt[i]?' <b class="'+(pay(g,i)>0?"pos":pay(g,i)<0?"neg":"")+'">'+f(pay(g,i))+"</b>":"";
+h+='<div class="cd'+(id===my?" me":"")+'"><div class="r"><span class="nm">'+(pr?esc(pr.n):"(uscito)")+(bk?" (banco)":"")+'</span><span class="mu">Totale: '+f(pr&&pr.s||0)+"</span></div>"+
+(cs?'<div class="cs">'+cs+"</div>":"")+'<div class="mu">'+(bk?"":"Puntata: "+(bet||0))+tot+res+"</div></div>"});
+tb.innerHTML=h;
+var c="";
+if(g.ph==="bet"){
+if(isB)c='<button data-a="deal">Distribuisci</button><div class="mu">Sei il banco: distribuisci quando tutti hanno puntato.</div>';
+else if(mi>=0)c='<div class="cd"><div class="nm">La tua puntata: '+(me.bk===key?me.b:0)+'</div><div class="ch" style="margin-top:8px">'+CH.map(function(v){return'<button data-a="chip" data-v="'+v+'">'+v.toFixed(2)+"</button>"}).join("")+'</div><button class="g" data-a="clr">Cancella puntata</button></div>'}
+else if(g.ph==="play"&&mi>=0&&!isB&&g.hd[mi]){var hv=val(g.hd[mi]),a=me.act&&me.act.k===key?me.act:{h:0,s:0},w=g.hd[mi].length-2<(a.h||0),dn=hv>=21||a.s===1||w;
+c='<div class="r"><button data-a="hit"'+(dn?" disabled":"")+'>Carta</button><button class="g" data-a="stand"'+(hv>=21||a.s===1?" disabled":"")+'>Stai</button></div>'}
+else if(g.ph==="end"&&isB)c='<button data-a="next">'+(g.M<5?"Prossima manche":T+1<ro.length?"Prossimo banco":"Mostra classifica")+"</button>";
+ct.innerHTML=c}
+$("ct").onclick=function(e){var t=e.target.closest("button");if(!t||t.disabled)return;var a=t.dataset.a,x=cur,g=x.g;
+if(a==="go"){P({ro:x.ps.slice(0,10).map(function(p){return p.peer})})}
+else if(a==="new")location.reload();
+else if(a==="chip"){P({b:Math.round(((me.bk===x.key?me.b:0)+parseFloat(t.dataset.v))*100)/100,bk:x.key})}
+else if(a==="clr")P({b:0,bk:x.key});
+else if(a==="deal"){var bt={},hd={};x.ro.forEach(function(id,i){var p=x.by[id];if(i!==x.T&&p&&p.presence.bk===x.key&&p.presence.b>0){bt[i]=p.presence.b;hd[i]=[rnd(),rnd()]}});
+if(Object.keys(bt).length)P({g:{T:x.T,M:g.M,ph:"play",bt:bt,hd:hd,dl:[rnd(),rnd()]}})}
+else if(a==="hit"){var ac=me.act&&me.act.k===x.key?me.act:{h:0};P({act:{k:x.key,h:(ac.h||0)+1,s:0}})}
+else if(a==="stand"){var ac2=me.act&&me.act.k===x.key?me.act:{h:0};P({act:{k:x.key,h:ac2.h||0,s:1}})}
+else if(a==="next"){if(g.M<5)P({g:{T:x.T,M:g.M+1,ph:"bet",bt:{},hd:{},dl:[]}});else P({T:x.T+1})}};
+})();
+</script></body></html>
